@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3-DEX Flash Loan Arbitrage Dashboard</title>
+  <style>
+    body {
+      background-color: #0b0c2a;
+      color: #e0e0e0;
+      font-family: 'Arial', sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #1e1f3a;
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #2b2d5a;
+    }
+    #profit {
+      font-size: 24px;
+      margin-top: 20px;
+      text-align: center;
+      color: #00ff91;
+    }
+    .green { color: #00ff91; }
+    .red { color: #ff4c4c; }
+  </style>
+</head>
+<body>
+
+<h1>Polygon 3-DEX Flash Loan Arbitrage Demo</h1>
+
+<div id="profit">Accumulated Net Profit: $0</div>
+
+<table id="logTable">
+  <thead>
+    <tr>
+      <th>Time</th>
+      <th>Loan Amount (USDC)</th>
+      <th>Flash Loan Fee ($)</th>
+      <th>DEXes</th>
+      <th>WBTC Price 1 ($)</th>
+      <th>WBTC Price 2 ($)</th>
+      <th>Slippage (%)</th>
+      <th>Gas Cost ($)</th>
+      <th>Gross Profit ($)</th>
+      <th>Net Profit ($)</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
+<script>
+let accumulatedNetProfit = 0;
+
+// Simulated DEXes
+const dexes = ['Uniswap', 'Sushiswap', 'Balancer', 'Quickswap', 'KyberSwap'];
+
+function simulateArbitrage() {
+  const startTime = performance.now();
+  
+  const flashLoanAmount = 10000; // $10,000
+  const flashLoanFeeRate = 0.0009; // 0.09%
+  const flashLoanFee = +(flashLoanAmount * flashLoanFeeRate).toFixed(2);
+  
+  const dex1 = dexes[Math.floor(Math.random() * dexes.length)];
+  const dex2 = dexes[Math.floor(Math.random() * dexes.length)];
+  const dex3 = dexes[Math.floor(Math.random() * dexes.length)];
+  
+  const wbtcPrice1 = +(27000 + Math.random() * 500).toFixed(2); // $27,000 - $27,500
+  const wbtcPrice2 = wbtcPrice1 + (Math.random() - 0.5) * 100;  // small difference
+  const wbtcPrice2Fixed = +wbtcPrice2.toFixed(2);
+  
+  const slippage = +(Math.random() * 0.5).toFixed(2); // up to 0.5%
+  const gasCost = +(Math.random() * 5).toFixed(2); // $0 - $5 gas
+  
+  const grossProfit = +(((wbtcPrice2Fixed - wbtcPrice1) * (flashLoanAmount / wbtcPrice1))).toFixed(2);
+  
+  const netProfit = +(grossProfit - flashLoanFee - gasCost).toFixed(2);
+  
+  accumulatedNetProfit += netProfit;
+  
+  const endTime = performance.now();
+  const timeCost = ((endTime - startTime) / 1000).toFixed(2);
+  
+  logArbitrage(timeCost, flashLoanAmount, flashLoanFee, `${dex1} → ${dex2} → ${dex3}`, wbtcPrice1, wbtcPrice2Fixed, slippage, gasCost, grossProfit, netProfit);
+  updateProfit();
+}
+
+function logArbitrage(timeCost, loanAmount, loanFee, dexRoute, price1, price2, slippage, gas, gross, net) {
+  const table = document.getElementById('logTable').getElementsByTagName('tbody')[0];
+  const newRow = table.insertRow();
+  
+  const timeCell = newRow.insertCell();
+  const loanCell = newRow.insertCell();
+  const feeCell = newRow.insertCell();
+  const dexCell = newRow.insertCell();
+  const price1Cell = newRow.insertCell();
+  const price2Cell = newRow.insertCell();
+  const slipCell = newRow.insertCell();
+  const gasCell = newRow.insertCell();
+  const grossCell = newRow.insertCell();
+  const netCell = newRow.insertCell();
+  
+  const currentTime = new Date().toLocaleTimeString();
+  
+  timeCell.innerText = currentTime;
+  loanCell.innerText = `$${loanAmount.toLocaleString()}`;
+  feeCell.innerText = `$${loanFee}`;
+  dexCell.innerText = dexRoute;
+  price1Cell.innerText = `$${price1}`;
+  price2Cell.innerText = `$${price2}`;
+  slipCell.innerText = `${slippage}%`;
+  gasCell.innerText = `$${gas}`;
+  grossCell.innerText = `$${gross}`;
+  netCell.innerText = `$${net}`;
+  
+  netCell.className = net >= 0 ? 'green' : 'red';
+}
+
+function updateProfit() {
+  const profitDiv = document.getElementById('profit');
+  const roundedProfit = accumulatedNetProfit.toFixed(2);
+  profitDiv.innerText = `Accumulated Net Profit: $${roundedProfit}`;
+  profitDiv.className = roundedProfit >= 0 ? 'green' : 'red';
+}
+
+// Auto-simulate every 5 seconds
+setInterval(simulateArbitrage, 5000);
+
+// Start immediately
+simulateArbitrage();
+</script>
+
+</body>
+</html>
