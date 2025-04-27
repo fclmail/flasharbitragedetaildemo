@@ -38,6 +38,12 @@
     }
     .green { color: #00ff91; }
     .red { color: #ff4c4c; }
+    #skipped {
+      margin-top: 10px;
+      font-size: 16px;
+      text-align: center;
+      color: #888;
+    }
   </style>
 </head>
 <body>
@@ -45,6 +51,7 @@
 <h1>Polygon 3-DEX Flash Loan Arbitrage Demo</h1>
 
 <div id="profit">Accumulated Net Profit: $0</div>
+<div id="skipped">Skipped Trades: 0</div>
 
 <table id="logTable">
   <thead>
@@ -67,8 +74,8 @@
 
 <script>
 let accumulatedNetProfit = 0;
+let skippedTrades = 0;
 
-// Simulated DEXes
 const dexes = ['Uniswap', 'Sushiswap', 'Balancer', 'Quickswap', 'KyberSwap'];
 
 function simulateArbitrage() {
@@ -83,23 +90,26 @@ function simulateArbitrage() {
   const dex3 = dexes[Math.floor(Math.random() * dexes.length)];
   
   const wbtcPrice1 = +(27000 + Math.random() * 500).toFixed(2); // $27,000 - $27,500
-  const wbtcPrice2 = wbtcPrice1 + (Math.random() - 0.5) * 100;  // small difference
+  const wbtcPrice2 = wbtcPrice1 + (Math.random() - 0.4) * 150;  // small to medium difference
   const wbtcPrice2Fixed = +wbtcPrice2.toFixed(2);
   
   const slippage = +(Math.random() * 0.5).toFixed(2); // up to 0.5%
-  const gasCost = +(Math.random() * 5).toFixed(2); // $0 - $5 gas
+  const gasCost = +(Math.random() * 4 + 1).toFixed(2); // $1 - $5 gas
   
   const grossProfit = +(((wbtcPrice2Fixed - wbtcPrice1) * (flashLoanAmount / wbtcPrice1))).toFixed(2);
-  
   const netProfit = +(grossProfit - flashLoanFee - gasCost).toFixed(2);
-  
-  accumulatedNetProfit += netProfit;
   
   const endTime = performance.now();
   const timeCost = ((endTime - startTime) / 1000).toFixed(2);
   
-  logArbitrage(timeCost, flashLoanAmount, flashLoanFee, `${dex1} → ${dex2} → ${dex3}`, wbtcPrice1, wbtcPrice2Fixed, slippage, gasCost, grossProfit, netProfit);
-  updateProfit();
+  if (netProfit > 0) {
+    accumulatedNetProfit += netProfit;
+    logArbitrage(timeCost, flashLoanAmount, flashLoanFee, `${dex1} → ${dex2} → ${dex3}`, wbtcPrice1, wbtcPrice2Fixed, slippage, gasCost, grossProfit, netProfit);
+    updateProfit();
+  } else {
+    skippedTrades++;
+    updateSkipped();
+  }
 }
 
 function logArbitrage(timeCost, loanAmount, loanFee, dexRoute, price1, price2, slippage, gas, gross, net) {
@@ -138,6 +148,11 @@ function updateProfit() {
   const roundedProfit = accumulatedNetProfit.toFixed(2);
   profitDiv.innerText = `Accumulated Net Profit: $${roundedProfit}`;
   profitDiv.className = roundedProfit >= 0 ? 'green' : 'red';
+}
+
+function updateSkipped() {
+  const skippedDiv = document.getElementById('skipped');
+  skippedDiv.innerText = `Skipped Trades: ${skippedTrades}`;
 }
 
 // Auto-simulate every 5 seconds
